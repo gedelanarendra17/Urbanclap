@@ -118,81 +118,75 @@ def service_delete(
 @router.post("/seed-gardening", response_model=dict)
 def seed_gardening_services(db: Session = Depends(get_db)):
     """
-    Seeds the database with gardening & planting services.
-    Safe to call multiple times — skips services that already exist.
+    Seeds gardening services. Uses first available provider or creates one.
+    Safe to call multiple times.
     """
     from app.auth.auth import get_password_hash
+    import traceback as tb
 
-    # Find or create a system provider user
-    system_user = db.query(User).filter(User.email == "system@servicenow.app").first()
-    if not system_user:
-        # Check if phone already taken (from failed previous run)
-        phone = "sys_prov_001"
-        if db.query(User).filter(User.phone == phone).first():
-            phone = "sys_prov_002"
-        system_user = User(
-            email="system@servicenow.app",
-            phone=phone,
-            full_name="ServiceNow Provider",
-            hashed_password=get_password_hash("seed"),
-            role=UserRole.PROVIDER,
-            is_active=True,
-            is_verified=True,
-        )
-        db.add(system_user)
-        try:
-            db.commit()
-            db.refresh(system_user)
-        except Exception:
-            db.rollback()
+    try:
+        # Try to find any existing provider
+        provider = db.query(ServiceProvider).first()
+
+        if not provider:
+            # Create a minimal system user without password hashing issues
             system_user = db.query(User).filter(User.email == "system@servicenow.app").first()
+            if not system_user:
+                # Use a simple short hash placeholder
+                system_user = User(
+                    email="system@servicenow.app",
+                    phone="sys001",
+                    full_name="ServiceNow System",
+                    hashed_password="$2b$12$placeholder.hash.value.for.system.account",
+                    role=UserRole.PROVIDER,
+                    is_active=True,
+                    is_verified=True,
+                )
+                db.add(system_user)
+                db.flush()
 
-    if not system_user:
-        raise HTTPException(status_code=500, detail="Could not create or find system user")
+            provider = ServiceProvider(
+                user_id=system_user.id,
+                business_name="ServiceNow Gardening Experts",
+                description="Certified horticulture professionals",
+                rating=4.8,
+                total_reviews=500,
+                is_verified=True,
+                years_of_experience=10,
+            )
+            db.add(provider)
+            db.flush()
 
-    # Find or create provider profile
-    provider = db.query(ServiceProvider).filter(ServiceProvider.user_id == system_user.id).first()
-    if not provider:
-        provider = ServiceProvider(
-            user_id=system_user.id,
-            business_name="ServiceNow Gardening Experts",
-            description="Certified horticulture professionals",
-            rating=4.8,
-            total_reviews=500,
-            is_verified=True,
-            years_of_experience=10,
-        )
-        db.add(provider)
+        created = []
+        skipped = []
+        for svc_data in GARDENING_SERVICES:
+            existing = db.query(Service).filter(
+                Service.name == svc_data["name"],
+                Service.category == "Gardening",
+            ).first()
+            if existing:
+                skipped.append(svc_data["name"])
+                continue
+            svc = Service(
+                provider_id=provider.id,
+                category=svc_data["category"],
+                name=svc_data["name"],
+                description=svc_data["description"],
+                base_price=svc_data["base_price"],
+                duration_minutes=svc_data["duration_minutes"],
+                rating=4.8,
+                total_reviews=50,
+                is_active=True,
+            )
+            db.add(svc)
+            created.append(svc_data["name"])
+
         db.commit()
-        db.refresh(provider)
-
-    created = []
-    skipped = []
-    for svc_data in GARDENING_SERVICES:
-        existing = db.query(Service).filter(
-            Service.name == svc_data["name"],
-            Service.category == "Gardening",
-        ).first()
-        if existing:
-            skipped.append(svc_data["name"])
-            continue
-        svc = Service(
-            provider_id=provider.id,
-            category=svc_data["category"],
-            name=svc_data["name"],
-            description=svc_data["description"],
-            base_price=svc_data["base_price"],
-            duration_minutes=svc_data["duration_minutes"],
-            rating=4.8,
-            total_reviews=50,
-            is_active=True,
-        )
-        db.add(svc)
-        created.append(svc_data["name"])
-
-    db.commit()
-    return {
-        "msg": f"Seeded {len(created)} gardening services",
-        "created": created,
-        "skipped": skipped,
-    }
+        return {
+            "msg": f"Seeded {len(created)} gardening services",
+            "created": created,
+            "skipped": skipped,
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Seed failed: {str(e)}")
