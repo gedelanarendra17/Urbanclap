@@ -126,12 +126,11 @@ def seed_gardening_services(db: Session = Depends(get_db)):
     system_user = db.query(User).filter(User.email == "system@servicenow.app").first()
     if not system_user:
         from app.auth.auth import get_password_hash
-        import secrets
         system_user = User(
             email="system@servicenow.app",
             phone="system_provider_001",
             full_name="ServiceNow Provider",
-            hashed_password=get_password_hash(secrets.token_urlsafe(32)),
+            hashed_password=get_password_hash("seed-no-login"),
             role=UserRole.PROVIDER,
             is_active=True,
             is_verified=True,
