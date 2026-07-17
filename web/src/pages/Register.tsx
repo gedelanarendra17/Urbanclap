@@ -77,9 +77,9 @@ export default function Register() {
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2">
             <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold">UC</span>
+              <span className="text-white font-bold">SN</span>
             </div>
-            <span className="text-2xl font-bold text-indigo-600">UrbanClap</span>
+            <span className="text-2xl font-bold text-indigo-600">ServiceNow</span>
           </Link>
           <h2 className="text-2xl font-bold text-gray-900 mt-6 mb-1">Create your account</h2>
           <p className="text-gray-500 text-sm">Join thousands of happy customers</p>

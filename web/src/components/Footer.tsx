@@ -8,9 +8,9 @@ export default function Footer() {
           <div className="md:col-span-2">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">UC</span>
+                <span className="text-white font-bold text-sm">SN</span>
               </div>
-              <span className="text-white font-bold text-lg">UrbanClap</span>
+              <span className="text-white font-bold text-lg">ServiceNow</span>
             </div>
             <p className="text-sm leading-relaxed">
               Connecting you with trusted local professionals for all your home and personal service needs.
@@ -34,7 +34,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="border-t border-gray-800 mt-8 pt-6 text-sm text-center">
-          © {new Date().getFullYear()} UrbanClap. All rights reserved.
+          © {new Date().getFullYear()} ServiceNow. All rights reserved.
         </div>
       </div>
     </footer>

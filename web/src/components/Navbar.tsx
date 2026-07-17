@@ -20,9 +20,9 @@ export default function Navbar() {
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">UC</span>
+            <span className="text-white font-bold text-sm">SN</span>
           </div>
-          <span className="text-xl font-bold text-indigo-600">UrbanClap</span>
+          <span className="text-xl font-bold text-indigo-600">ServiceNow</span>
         </Link>
 
         {/* Nav links */}

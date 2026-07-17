@@ -24,7 +24,7 @@ const testimonials = [
   {
     name: 'Rahul Mehta',
     role: 'Office Manager',
-    text: 'We use UrbanClap for all our office cleaning needs. Consistent quality every single time.',
+    text: 'We use ServiceNow for all our office cleaning needs. Consistent quality every single time.',
     rating: 5,
     avatar: 'RM',
   },
@@ -140,7 +140,7 @@ export default function Home() {
       {/* Why choose us */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">Why UrbanClap?</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">Why ServiceNow?</h2>
           <p className="text-gray-500">Everything you need for a seamless service experience</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

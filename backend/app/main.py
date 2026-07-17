@@ -7,7 +7,7 @@ import os
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="UrbanClap API",
+    title="ServiceNow API",
     description="A marketplace for local services",
     version="1.0.0"
 )
