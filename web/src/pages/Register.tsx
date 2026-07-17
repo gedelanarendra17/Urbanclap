@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
+import GoogleButton from '../components/GoogleButton';
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -38,7 +39,8 @@ export default function Register() {
         phone: form.phone,
         password: form.password,
       });
-      setSuccess(true);
+      // Auto-verified — go straight to login
+      navigate('/login', { state: { registered: true } });
     } catch (err: any) {
       setError(err?.response?.data?.detail || 'Registration failed.');
     } finally {
@@ -91,6 +93,16 @@ export default function Register() {
               {error}
             </div>
           )}
+
+          {/* Google Sign Up */}
+          <GoogleButton label="Sign up with Google" />
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-5">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-xs text-gray-400 font-medium">or register with email</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

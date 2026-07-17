@@ -9,11 +9,13 @@ from app.models.models import EmailVerificationToken, PasswordResetToken, User
 from app.auth.deps import get_current_user
 from datetime import datetime, timedelta
 import uuid
+import os
 
 router = APIRouter()
 
 VERIFICATION_TOKEN_EXPIRY_HOURS = 24
 PASSWORD_RESET_TOKEN_EXPIRY_HOURS = 2
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 
 
 @router.post("/register", response_model=dict)
@@ -28,6 +30,14 @@ def register(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User with this email already exists",
         )
+    # check phone uniqueness separately for a cleaner error
+    from app.models.models import User as UserModel
+    existing_phone = db.query(UserModel).filter(UserModel.phone == user_in.phone).first()
+    if existing_phone:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User with this phone number already exists",
+        )
     user = create_user(
         db,
         email=user_in.email,
@@ -35,13 +45,11 @@ def register(
         full_name=user_in.full_name,
         password=user_in.password,
     )
-    token = str(uuid.uuid4())
-    expires_at = datetime.utcnow() + timedelta(hours=VERIFICATION_TOKEN_EXPIRY_HOURS)
-    v = EmailVerificationToken(user_id=user.id, token=token, expires_at=expires_at)
-    db.add(v)
+    # Auto-verify for now (no real email service configured)
+    user.is_verified = True
+    db.add(user)
     db.commit()
-    background_tasks.add_task(send_verification_email, user.email, token)
-    return {"msg": "User created. Verification email sent (check logs)."}
+    return {"msg": "Registration successful! You can now log in."}
 
 
 @router.get("/verify-email")
@@ -74,8 +82,6 @@ def login(form_data: dict, db: Session = Depends(get_db)):
     user = authenticate_user(db, email, password)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-    if not user.is_verified:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Email not verified")
     access_token, refresh_token = create_tokens_for_user(user)
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
@@ -153,3 +159,94 @@ def get_me(current_user=Depends(get_current_user)):
         "is_active": current_user.is_active,
         "created_at": current_user.created_at.isoformat(),
     }
+
+
+@router.post("/google/callback", response_model=TokenResponse)
+def google_callback(payload: dict, db: Session = Depends(get_db)):
+    """
+    Receives an authorization code from the frontend (auth-code flow),
+    exchanges it with Google for user info, then creates/logs in the user.
+    """
+    code = payload.get("code")
+    if not code:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Authorization code required")
+
+    if not GOOGLE_CLIENT_ID:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Google OAuth not configured. Set GOOGLE_CLIENT_ID on the server.",
+        )
+
+    GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
+    FRONTEND_URL = os.getenv("FRONTEND_URL", "https://web-tau-bay-24.vercel.app")
+
+    # Exchange code for tokens with Google
+    import httpx as _httpx
+    token_resp = _httpx.post(
+        "https://oauth2.googleapis.com/token",
+        data={
+            "code": code,
+            "client_id": GOOGLE_CLIENT_ID,
+            "client_secret": GOOGLE_CLIENT_SECRET,
+            "redirect_uri": "postmessage",  # used by @react-oauth/google auth-code flow
+            "grant_type": "authorization_code",
+        },
+    )
+    if token_resp.status_code != 200:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Google token exchange failed: {token_resp.text}",
+        )
+
+    google_tokens = token_resp.json()
+    id_token_str = google_tokens.get("id_token")
+
+    if not id_token_str:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No ID token from Google")
+
+    # Verify and decode the ID token
+    try:
+        from google.oauth2 import id_token as google_id_token
+        from google.auth.transport import requests as google_requests
+        idinfo = google_id_token.verify_oauth2_token(
+            id_token_str,
+            google_requests.Request(),
+            GOOGLE_CLIENT_ID,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid Google token: {e}")
+
+    email = idinfo.get("email")
+    full_name = idinfo.get("name", email)
+    google_sub = idinfo.get("sub", "")
+
+    if not email:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Could not get email from Google")
+
+    # Find or create user
+    user = get_user_by_email(db, email)
+    if not user:
+        import secrets
+        random_password = secrets.token_urlsafe(32)
+        phone_placeholder = f"g_{google_sub[:20]}"
+        # Check placeholder isn't taken
+        existing_phone = db.query(User).filter(User.phone == phone_placeholder).first()
+        if existing_phone:
+            phone_placeholder = f"g_{uuid.uuid4().hex[:20]}"
+        user = create_user(
+            db,
+            email=email,
+            phone=phone_placeholder,
+            full_name=full_name,
+            password=random_password,
+        )
+        user.is_verified = True
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account is disabled")
+
+    access_token, refresh_token = create_tokens_for_user(user)
+    return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}

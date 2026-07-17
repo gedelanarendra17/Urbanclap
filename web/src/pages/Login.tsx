@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import GoogleButton from '../components/GoogleButton';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -10,6 +11,8 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
+  const justRegistered = (location.state as any)?.registered;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,11 +44,28 @@ export default function Login() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+          {/* Success banner after register */}
+          {justRegistered && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
+              <span>✅</span> Account created! You can now sign in.
+            </div>
+          )}
+
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
               {error}
             </div>
           )}
+
+          {/* Google Sign In */}
+          <GoogleButton label="Continue with Google" />
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-5">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-xs text-gray-400 font-medium">or sign in with email</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>

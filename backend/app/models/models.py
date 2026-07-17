@@ -1,10 +1,11 @@
 from sqlalchemy import Column, String, Integer, Float, DateTime, Boolean, ForeignKey, Enum, Text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, DeclarativeBase
 from datetime import datetime
 import enum
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    pass
 
 class UserRole(str, enum.Enum):
     CUSTOMER = "customer"
