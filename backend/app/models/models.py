@@ -1,11 +1,9 @@
 from sqlalchemy import Column, String, Integer, Float, DateTime, Boolean, ForeignKey, Enum, Text
-from sqlalchemy.orm import relationship, DeclarativeBase
+from sqlalchemy.orm import relationship, declarative_base
 from datetime import datetime
 import enum
 
-
-class Base(DeclarativeBase):
-    pass
+Base = declarative_base()
 
 class UserRole(str, enum.Enum):
     CUSTOMER = "customer"
@@ -43,7 +41,6 @@ class User(Base):
     # Relationships
     provider_profile = relationship("ServiceProvider", uselist=False, back_populates="user")
     customer_bookings = relationship("Booking", back_populates="customer")
-    provider_services = relationship("Service", back_populates="provider")
     reviews = relationship("Review", back_populates="reviewer")
 
 class ServiceProvider(Base):
