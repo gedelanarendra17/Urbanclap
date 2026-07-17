@@ -7,9 +7,15 @@ import StarRating from '../components/StarRating';
 import { useAuthStore } from '../store/authStore';
 import type { Service } from '../types';
 
-const categoryIcons: Record<string, string> = {
-  Plumbing: '🔧', Electrician: '⚡', Cleaning: '🧹', Painting: '🎨',
-  Gardening: '🌿', Security: '🔒', 'AC Repair': '❄️', Bathroom: '🛁',
+const categoryImages: Record<string, string> = {
+  Plumbing:    'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=800&h=400&fit=crop&auto=format',
+  Electrician: 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=800&h=400&fit=crop&auto=format',
+  Cleaning:    'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=400&fit=crop&auto=format',
+  Painting:    'https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=800&h=400&fit=crop&auto=format',
+  Gardening:   'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&h=400&fit=crop&auto=format',
+  Security:    'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop&auto=format',
+  'AC Repair': 'https://images.unsplash.com/photo-1631545806609-35038059f5fe?w=800&h=400&fit=crop&auto=format',
+  Bathroom:    'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&h=400&fit=crop&auto=format',
 };
 
 // Demo fallback for when service isn't in DB
@@ -106,8 +112,13 @@ export default function ServiceDetail() {
           {/* Main content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Hero image */}
-            <div className="bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl h-60 flex items-center justify-center text-8xl">
-              {categoryIcons[service.category] ?? '🛠️'}
+            <div className="relative rounded-2xl overflow-hidden h-72">
+              <img
+                src={categoryImages[service.category] ?? 'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=800&h=400&fit=crop&auto=format'}
+                alt={service.name}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
             </div>
 
             {/* Title & meta */}

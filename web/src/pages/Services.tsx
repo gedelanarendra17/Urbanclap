@@ -13,6 +13,17 @@ const categoryIcons: Record<string, string> = {
   Gardening: '🌿', Security: '🔒', 'AC Repair': '❄️', Bathroom: '🛁',
 };
 
+const categoryImages: Record<string, string> = {
+  Plumbing:    'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=600&h=300&fit=crop&auto=format',
+  Electrician: 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=600&h=300&fit=crop&auto=format',
+  Cleaning:    'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600&h=300&fit=crop&auto=format',
+  Painting:    'https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=600&h=300&fit=crop&auto=format',
+  Gardening:   'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&h=300&fit=crop&auto=format',
+  Security:    'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=300&fit=crop&auto=format',
+  'AC Repair': 'https://images.unsplash.com/photo-1631545806609-35038059f5fe?w=600&h=300&fit=crop&auto=format',
+  Bathroom:    'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&h=300&fit=crop&auto=format',
+};
+
 export default function Services() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -141,13 +152,21 @@ export default function Services() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayServices.map((s) => (
               <div key={s.id} className="card flex flex-col overflow-hidden group">
-                {/* Image placeholder */}
-                <div className="bg-gradient-to-br from-indigo-100 to-purple-100 h-44 flex items-center justify-center text-5xl group-hover:scale-105 transition-transform duration-200 overflow-hidden">
-                  {categoryIcons[s.category] ?? '🛠️'}
+                {/* Service image */}
+                <div className="relative h-44 overflow-hidden bg-gradient-to-br from-indigo-100 to-purple-100">
+                  <img
+                    src={categoryImages[s.category] ?? 'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=600&h=300&fit=crop&auto=format'}
+                    alt={s.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                  <span className="absolute top-3 left-3 badge bg-white/90 text-indigo-700 text-xs font-semibold shadow">
+                    {categoryIcons[s.category] ?? '🛠️'} {s.category}
+                  </span>
                 </div>
                 <div className="p-5 flex flex-col flex-1">
                   <div className="flex items-start justify-between mb-1">
-                    <span className="badge bg-indigo-50 text-indigo-700">{s.category}</span>
                     <span className="text-lg font-bold text-indigo-600">₹{s.base_price}</span>
                   </div>
                   <h3 className="font-bold text-gray-900 text-lg mt-2 mb-1">{s.name}</h3>
