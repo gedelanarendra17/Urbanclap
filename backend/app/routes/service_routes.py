@@ -4,9 +4,10 @@ from typing import List
 from app.database.database import get_db
 from app.services.service_service import list_services, get_service, create_service, update_service, soft_delete_service
 from app.auth.deps import get_current_user
-from app.models.models import ServiceProvider, UserRole
+from app.models.models import Service, ServiceProvider, UserRole
 
 router = APIRouter()
+
 
 @router.get("/", response_model=List[dict])
 def services_list(skip: int = 0, limit: int = 50, db: Session = Depends(get_db)):
@@ -20,9 +21,12 @@ def services_list(skip: int = 0, limit: int = 50, db: Session = Depends(get_db))
             "base_price": s.base_price,
             "duration_minutes": s.duration_minutes,
             "provider_id": s.provider_id,
+            "rating": s.rating,
+            "total_reviews": s.total_reviews,
         }
         for s in svcs
     ]
+
 
 @router.get("/{service_id}")
 def service_detail(service_id: int, db: Session = Depends(get_db)):
@@ -37,25 +41,44 @@ def service_detail(service_id: int, db: Session = Depends(get_db)):
         "base_price": s.base_price,
         "duration_minutes": s.duration_minutes,
         "provider_id": s.provider_id,
+        "rating": s.rating,
+        "total_reviews": s.total_reviews,
     }
 
+
 @router.post("/")
-def service_create(payload: dict, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
-    # Only providers can create services
-    if current_user.role.name != UserRole.PROVIDER.name and current_user.role.value != UserRole.PROVIDER.value:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only providers can create services")
+def service_create(
+    payload: dict,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.role.value != UserRole.PROVIDER.value:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only providers can create services",
+        )
     provider = db.query(ServiceProvider).filter(ServiceProvider.user_id == current_user.id).first()
     if not provider:
-        # auto-create provider profile
-        provider = ServiceProvider(user_id=current_user.id, business_name=current_user.full_name, description="", years_of_experience=0)
+        provider = ServiceProvider(
+            user_id=current_user.id,
+            business_name=current_user.full_name,
+            description="",
+            years_of_experience=0,
+        )
         db.add(provider)
         db.commit()
         db.refresh(provider)
     svc = create_service(db, provider, payload)
     return {"msg": "Service created", "service_id": svc.id}
 
+
 @router.put("/{service_id}")
-def service_update(service_id: int, payload: dict, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+def service_update(
+    service_id: int,
+    payload: dict,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     svc = db.query(Service).filter(Service.id == service_id).first()
     if not svc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Service not found")
@@ -64,8 +87,13 @@ def service_update(service_id: int, payload: dict, current_user=Depends(get_curr
     updated = update_service(db, svc, payload)
     return {"msg": "Service updated", "service_id": updated.id}
 
+
 @router.delete("/{service_id}")
-def service_delete(service_id: int, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+def service_delete(
+    service_id: int,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     svc = db.query(Service).filter(Service.id == service_id).first()
     if not svc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Service not found")
