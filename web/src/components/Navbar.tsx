@@ -29,6 +29,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-6">
           <Link to="/" className={`text-sm transition-colors ${isActive('/')}`}>Home</Link>
           <Link to="/services" className={`text-sm transition-colors ${isActive('/services')}`}>Services</Link>
+          <Link to="/gardening" className={`text-sm transition-colors ${isActive('/gardening')}`}>🌿 Gardening</Link>
           {is_authenticated && (
             <Link to="/dashboard" className={`text-sm transition-colors ${isActive('/dashboard')}`}>Dashboard</Link>
           )}

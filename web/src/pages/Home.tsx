@@ -7,41 +7,49 @@ const categories = [
     name: 'Plumbing',
     color: 'bg-blue-50',
     img: 'https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=80&h=80&fit=crop&auto=format',
+    href: '/services?category=Plumbing',
   },
   {
     name: 'Electrician',
     color: 'bg-yellow-50',
     img: 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=80&h=80&fit=crop&auto=format',
+    href: '/services?category=Electrician',
   },
   {
     name: 'Cleaning',
     color: 'bg-green-50',
     img: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=80&h=80&fit=crop&auto=format',
+    href: '/services?category=Cleaning',
   },
   {
     name: 'Painting',
     color: 'bg-pink-50',
     img: 'https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=80&h=80&fit=crop&auto=format',
+    href: '/services?category=Painting',
   },
   {
     name: 'Gardening',
     color: 'bg-emerald-50',
     img: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=80&h=80&fit=crop&auto=format',
+    href: '/gardening',
   },
   {
     name: 'Security',
     color: 'bg-purple-50',
     img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=80&h=80&fit=crop&auto=format',
+    href: '/services?category=Security',
   },
   {
     name: 'AC Repair',
     color: 'bg-cyan-50',
     img: 'https://images.unsplash.com/photo-1631545806609-35038059f5fe?w=80&h=80&fit=crop&auto=format',
+    href: '/services?category=AC Repair',
   },
   {
     name: 'Bathroom',
     color: 'bg-orange-50',
     img: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=80&h=80&fit=crop&auto=format',
+    href: '/services?category=Bathroom',
   },
 ];
 
@@ -213,7 +221,7 @@ export default function Home() {
           {categories.map((cat) => (
             <Link
               key={cat.name}
-              to={`/services?category=${cat.name}`}
+              to={cat.href}
               className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-white border border-gray-100 hover:border-indigo-200 hover:shadow-md transition-all duration-200"
             >
               <div className={`w-14 h-14 rounded-xl overflow-hidden ${cat.color} flex items-center justify-center`}>
