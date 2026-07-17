@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 import os
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./urbanclap.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./servicenow.db")
 
 if "sqlite" in DATABASE_URL:
     engine = create_engine(

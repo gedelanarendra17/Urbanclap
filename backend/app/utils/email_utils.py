@@ -3,7 +3,7 @@ import os
 
 logger = logging.getLogger(__name__)
 
-FRONTEND_URL = os.getenv("FRONTEND_URL", "https://urbanclap-web.vercel.app")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://web-tau-bay-24.vercel.app")
 
 
 def send_verification_email(email: str, token: str):

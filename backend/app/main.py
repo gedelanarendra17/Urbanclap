@@ -30,7 +30,7 @@ app.include_router(service_router, prefix="/api/services")
 @app.get("/")
 async def read_root():
     return {
-        "message": "Welcome to UrbanClap API",
+        "message": "Welcome to ServiceNow API",
         "version": "1.0.0",
         "docs": "/docs"
     }
