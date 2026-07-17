@@ -119,25 +119,36 @@ def service_delete(
 def seed_gardening_services(db: Session = Depends(get_db)):
     """
     Seeds the database with gardening & planting services.
-    Creates a system provider if one doesn't exist.
     Safe to call multiple times — skips services that already exist.
     """
+    from app.auth.auth import get_password_hash
+
     # Find or create a system provider user
     system_user = db.query(User).filter(User.email == "system@servicenow.app").first()
     if not system_user:
-        from app.auth.auth import get_password_hash
+        # Check if phone already taken (from failed previous run)
+        phone = "sys_prov_001"
+        if db.query(User).filter(User.phone == phone).first():
+            phone = "sys_prov_002"
         system_user = User(
             email="system@servicenow.app",
-            phone="system_provider_001",
+            phone=phone,
             full_name="ServiceNow Provider",
-            hashed_password=get_password_hash("seed-no-login"),
+            hashed_password=get_password_hash("seed"),
             role=UserRole.PROVIDER,
             is_active=True,
             is_verified=True,
         )
         db.add(system_user)
-        db.commit()
-        db.refresh(system_user)
+        try:
+            db.commit()
+            db.refresh(system_user)
+        except Exception:
+            db.rollback()
+            system_user = db.query(User).filter(User.email == "system@servicenow.app").first()
+
+    if not system_user:
+        raise HTTPException(status_code=500, detail="Could not create or find system user")
 
     # Find or create provider profile
     provider = db.query(ServiceProvider).filter(ServiceProvider.user_id == system_user.id).first()
